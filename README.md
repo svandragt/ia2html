@@ -1,4 +1,4 @@
-# ia2html
+# ia2web
 Static site generation of iA Markdown files.
 
 ## Setup
@@ -6,8 +6,8 @@ Static site generation of iA Markdown files.
 In the directory of markdown files:
 
 ```
-git clone https://github.com/svandragt/ia2html.git .export && cd .export && composer install
-php ia2html.php
+git clone https://github.com/svandragt/ia2web.git .export && cd .export && composer install
+php ia2web.php
 
 ```
 
