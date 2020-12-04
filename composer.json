@@ -1,0 +1,15 @@
+{
+    "name": "svandragt/ia2html",
+    "description": "HTML generation of iA Markdown",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sander van Dragt",
+            "email": "sander@vandragt.com"
+        }
+    ],
+    "require": {
+        "erusev/parsedown": "^1.7"
+    }
+}
