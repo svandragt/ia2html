@@ -7,8 +7,7 @@ In the directory of markdown files:
 
 ```
 git clone https://github.com/svandragt/ia2html.git .export && cd .export
-chmod +x ia2html.php
-./ia2html.php
+php ia2html.php
 
 ```
 
