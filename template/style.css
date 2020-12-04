@@ -1,4 +1,13 @@
 body {
 	font: 16px/1.5 Helvetica;
-	background: green;
+	
+}
+
+main {
+	max-width: 50em;
+	margin: 0 auto;
+}
+
+code {
+	white-space: pre-line;
 }
