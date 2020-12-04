@@ -2,24 +2,39 @@
 <?php
 require_once __DIR__. '/vendor/autoload.php';
 
-$dir = 'html';
-@mkdir($dir);
+main();
 
-$Parsedown = new Parsedown();
+function main() {
+	$args = get_args();
 
-copy('template/style.css', 'html/style.css');
-$layout = file_get_contents('template/_layout.html');
+	handle_theme($args);
+	handle_files($args);
+}
 
+function get_args() {
+	return [
+		'Parsedown' => new Parsedown(),
+		'layout'    => file_get_contents('template/_layout.html'),
+		'dir'       => 'html',
+	];
+}
 
-foreach (glob("../*.md") as $source) {
-	$subject = file_get_contents($source);
+function handle_files($args) {
+	foreach (glob("../*.md") as $source) {
+		$subject = file_get_contents($source);
+		$content = $args['Parsedown']->text($subject); 
+		$_layout = $args['layout'];
+		$data    = str_replace('{content}', $content, $_layout);
 
-	$_layout = $layout;
-	$content = $Parsedown->text($subject); 
-	$data = str_replace('{content}', $content, $_layout);
+		$dest     = __DIR__ . '/html/' . $args['dir'] . '/' . $source;
+		$filename = str_replace ( '.md', '.html', $dest);
+	   	file_put_contents ( $filename, $data );
 
-	$dest = __DIR__ . '/html/' . $dir . '/' . $source;
-	$filename = str_replace ( '.md', '.html', $dest);
-	echo $filename  . PHP_EOL;
-   	file_put_contents ( $filename, $data );
+		echo $filename  . PHP_EOL;
+	}
+}
+
+function handle_theme($args) {
+	@mkdir($args['dir']);
+	copy('template/style.css', 'html/style.css');
 }
