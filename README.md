@@ -6,7 +6,7 @@ Static site generation of iA Markdown files.
 In the directory of markdown files:
 
 ```
-git clone https://github.com/svandragt/ia2html.git && cd ia2html
+git clone https://github.com/svandragt/ia2html.git .export && cd .export
 chmod +x ia2html.php
 ./ia2html.php
 
