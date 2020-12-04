@@ -1,7 +1,7 @@
 # ia2html
 Static site generation of iA Markdown files.
 
-## Setup
+## Setup
 
 In the directory of markdown files:
 
