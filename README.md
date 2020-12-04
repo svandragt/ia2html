@@ -1,5 +1,5 @@
 # ia2web
-Static site generation of iA Markdown files.
+Static site generation of iA Writer (and compatible) Markdown files.
 
 ## Setup
 
