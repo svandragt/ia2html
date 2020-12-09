@@ -6,7 +6,6 @@ main();
 
 function main() : void {
 	$args = get_args();
-
 	watch($args, [
 		'template/*.css' => 'handle_theme',
 		'../*.md' => 'handle_file',
@@ -16,15 +15,12 @@ function main() : void {
 
 function watch(array $args, $paths) : void {
 	while(true) {
-
-	foreach ($paths as $path => $callback) {
-		// Watch __FILE__ for metadata changes (e.g. mtime)
-		foreach (glob($path) as $source) {
-			$callback($args, $source);
+		foreach ($paths as $path => $callback) {
+			foreach (glob($path) as $source) {
+				$callback($args, $source);
+			}
 		}
-	}
-			$abort = sleep(1);
-		if ($abort) {
+		if (sleep(1) !== 0) {
 			break;
 		}
 	}
@@ -46,23 +42,35 @@ function handle_file(&$args, $source) {
 		return;
 	}
 
-	$subject = file_get_contents($source);
-	$content = $args['Parsedown']->text($subject); 
-	$_layout = $args['layout'];
-	$data    = str_replace('{content}', $content, $_layout);
+	$markdown = file_get_contents($source);
+	$html = $args['Parsedown']->text($markdown); 
+	$data    = str_replace('{content}', $html, $args['layout']);
 
    	file_put_contents ( $dest, $data );
 
-	$args['files'][$source] = $md5 = md5($subject);
-
+	$args['files'][$source] = $md5 = md5($markdown);
 	handle_index($args);
+	display($md5, $dest);
+}
 
+function display(string $md5, string $dest ) : void {
 	$md5 = substr($md5, 0, 8);
 	echo "${md5} ${dest}"  . PHP_EOL;
 }
 
 function handle_index(array $args) : void {	
-	$content = '<ul>';
+	$content = html_nav($args);
+
+	$data    = str_replace('{content}', $content, $args['layout']);
+	$dest = __DIR__ .'/'. $args['dir'] . '/index.html';
+   	file_put_contents ( $dest, $data );
+
+   	$md5 = md5($data);
+	display($md5, $dest);
+}
+
+function html_nav(array $args) : string {
+	$content ='<ul>';
 	foreach ($args['files'] as $created => $source) {
 		$link = str_replace ( '.md', '.html', $source);
 		$link = str_replace ( '../', '', $link);
@@ -70,30 +78,21 @@ function handle_index(array $args) : void {
 		$content .= "<li><a href='${link}'>${title}</a></li>";
 	}
 	$content .= '</ul>';
-
-	$_layout = $args['layout'];
-	$data    = str_replace('{content}', $content, $_layout);
-
-	$filename = __DIR__ .'/'. $args['dir'] . '/index.html';
-   	file_put_contents ( $filename, $data );
-
-   	$md5 = md5($data);
-	$md5 = substr($md5, 0, 8);
-	echo "${md5} ${filename}"  . PHP_EOL;
+	return $content;
 }
 
 function handle_theme(array &$args, $source) : void {
 	@mkdir($args['dir']);
-	$dest = str_replace('template', $args['dir'], $source);
-
-	$data = file_get_contents($source);
 
 	if (isset($args['files'][$source]) && md5_file($source) === $args['files'][$source]) {
 		return;
 	}
-	copy($source, $dest);
-	$args['files'][$source] = $md5 = md5($data);
 
-	$md5 = substr($md5, 0, 8);
-	echo "${md5} ${dest}"  . PHP_EOL;
+	$dest = str_replace('template', $args['dir'], $source);
+	copy($source, $dest);
+
+	$data = file_get_contents($source);
+	$args['files'][$source] = $md5 = md5($data);
+	display($md5, $dest);
+
 }
