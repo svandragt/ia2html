@@ -9,7 +9,6 @@ function main() : void {
 	$paths = [
 		'template/*.css' => 'handle_theme',
 		'../*.md' => 'handle_file',
-
 	];
 
 	while(true) {
