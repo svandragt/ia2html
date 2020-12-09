@@ -6,14 +6,12 @@ main();
 
 function main() : void {
 	$args = get_args();
-	watch($args, [
+	$paths = [
 		'template/*.css' => 'handle_theme',
 		'../*.md' => 'handle_file',
 
-	]);
-}
+	];
 
-function watch(array $args, $paths) : void {
 	while(true) {
 		foreach ($paths as $path => $callback) {
 			foreach (glob($path) as $source) {
@@ -24,7 +22,11 @@ function watch(array $args, $paths) : void {
 			break;
 		}
 	}
+}
 
+function display(string $md5, string $dest ) : void {
+	$md5 = substr($md5, 0, 8);
+	echo "${md5} ${dest}"  . PHP_EOL;
 }
 
 function get_args() : array {
@@ -53,32 +55,15 @@ function handle_file(&$args, $source) {
 	display($md5, $dest);
 }
 
-function display(string $md5, string $dest ) : void {
-	$md5 = substr($md5, 0, 8);
-	echo "${md5} ${dest}"  . PHP_EOL;
-}
-
 function handle_index(array $args) : void {	
-	$content = html_nav($args);
+	$html = html_nav($args);
 
-	$data    = str_replace('{content}', $content, $args['layout']);
+	$data    = str_replace('{content}', $html, $args['layout']);
 	$dest = __DIR__ .'/'. $args['dir'] . '/index.html';
    	file_put_contents ( $dest, $data );
 
    	$md5 = md5($data);
 	display($md5, $dest);
-}
-
-function html_nav(array $args) : string {
-	$content ='<ul>';
-	foreach ($args['files'] as $created => $source) {
-		$link = str_replace ( '.md', '.html', $source);
-		$link = str_replace ( '../', '', $link);
-		$title = str_replace ( '.html', '', $link);
-		$content .= "<li><a href='${link}'>${title}</a></li>";
-	}
-	$content .= '</ul>';
-	return $content;
 }
 
 function handle_theme(array &$args, $source) : void {
@@ -94,5 +79,16 @@ function handle_theme(array &$args, $source) : void {
 	$data = file_get_contents($source);
 	$args['files'][$source] = $md5 = md5($data);
 	display($md5, $dest);
+}
 
+function html_nav(array $args) : string {
+	$html ='<ul>';
+	foreach ($args['files'] as $created => $source) {
+		$link = str_replace ( '.md', '.html', $source);
+		$link = str_replace ( '../', '', $link);
+		$title = str_replace ( '.html', '', $link);
+		$html .= "<li><a href='${link}'>${title}</a></li>";
+	}
+	$html .= '</ul>';
+	return $html;
 }
