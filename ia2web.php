@@ -42,9 +42,13 @@ function get_args() : array {
 }
 
 function handle_file(&$args, $source) {
-	$dest = str_replace ( '.md', '.html', __DIR__ . '/html/' . $args['dir'] . '/' . $source);
+	$fn = $source;
+	$fn = mb_ereg_replace("([^a-zA-Z0-9\.\/\\_])", '-', $fn);
+	$fn = str_replace ( ['.md', '--'], ['.html','-'], $fn);
+	$dest = __DIR__ . '/html/' . $args['dir'] . '/' . $fn;
 
-	if (isset($args['files'][$source]) && md5_file($source) === $args['files'][$source]) {
+
+	if (isset($args['files'][$fn]) && md5_file($source) === $args['files'][$fn]) {
 		return false;
 	}
 
@@ -54,7 +58,7 @@ function handle_file(&$args, $source) {
 
    	file_put_contents ( $dest, $data );
 
-	$args['files'][$source] = $md5 = md5($markdown);
+	$args['files'][$fn] = $md5 = md5($markdown);
 	display($md5, $dest);
 	return true;
 }
@@ -87,9 +91,10 @@ function handle_theme(array &$args, $source) : void {
 
 function html_nav(array $args) : string {
 	$html ='<ul>';
-	foreach (array_keys($args['files']) as $source) {
-		$link = str_replace ( '.md', '.html', $source);
-		$link = str_replace ( '../', '', $link);
+	foreach (array_keys($args['files']) as $dest) {
+		$link = str_replace ( '.md', '.html', $dest);
+		$link = str_replace('../', '', $link);
+
 		$title = str_replace ( '.html', '', $link);
 		$html .= "<li><a href='${link}'>${title}</a></li>";
 	}
