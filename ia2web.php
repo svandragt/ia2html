@@ -12,10 +12,15 @@ function main() : void {
 	];
 
 	while(true) {
+		$changes = [];
 		foreach ($paths as $path => $callback) {
+			$changes[$callback] = 0;
 			foreach (glob($path) as $source) {
-				$callback($args, $source);
+				$changes[$callback] += (int)$callback($args, $source);
 			}
+		}
+		if ($changes['handle_file'] > 0) {
+			handle_index($args);
 		}
 		if (sleep(1) !== 0) {
 			break;
@@ -40,7 +45,7 @@ function handle_file(&$args, $source) {
 	$dest = str_replace ( '.md', '.html', __DIR__ . '/html/' . $args['dir'] . '/' . $source);
 
 	if (isset($args['files'][$source]) && md5_file($source) === $args['files'][$source]) {
-		return;
+		return false;
 	}
 
 	$markdown = file_get_contents($source);
@@ -50,8 +55,8 @@ function handle_file(&$args, $source) {
    	file_put_contents ( $dest, $data );
 
 	$args['files'][$source] = $md5 = md5($markdown);
-	handle_index($args);
 	display($md5, $dest);
+	return true;
 }
 
 function handle_index(array $args) : void {	
@@ -82,7 +87,7 @@ function handle_theme(array &$args, $source) : void {
 
 function html_nav(array $args) : string {
 	$html ='<ul>';
-	foreach ($args['files'] as $created => $source) {
+	foreach (array_keys($args['files']) as $source) {
 		$link = str_replace ( '.md', '.html', $source);
 		$link = str_replace ( '../', '', $link);
 		$title = str_replace ( '.html', '', $link);
