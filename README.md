@@ -12,3 +12,8 @@ php ia2web.php
 ```
 
 A new `html` folder containing a static website is created.
+
+## Features
+
+- Watches notes folders for content changes, generating html on the fly.
+- Simple script, hack away.
