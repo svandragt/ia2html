@@ -36,7 +36,10 @@ function display(string $md5, string $dest ) : void {
 function get_args() : array {
 	return [
 		'Parsedown' => new Parsedown(),
-		'layout'    => file_get_contents('template/_layout.html'),
+		'layout'    => [
+			'index' =>file_get_contents('template/index.html'),
+			'single' =>file_get_contents('template/single.html'),
+		],
 		'dir'       => 'html',
 	];
 }
@@ -54,7 +57,7 @@ function handle_file(&$args, $source) {
 
 	$markdown = file_get_contents($source);
 	$html = $args['Parsedown']->text($markdown); 
-	$data    = str_replace('{content}', $html, $args['layout']);
+	$data    = str_replace('{content}', $html, $args['layout']['single']);
 
    	file_put_contents ( $dest, $data );
 
@@ -66,7 +69,7 @@ function handle_file(&$args, $source) {
 function handle_index(array $args) : void {	
 	$html = html_nav($args);
 
-	$data    = str_replace('{content}', $html, $args['layout']);
+	$data    = str_replace('{content}', $html, $args['layout']['index']);
 	$dest = __DIR__ .'/'. $args['dir'] . '/index.html';
    	file_put_contents ( $dest, $data );
 
@@ -77,7 +80,7 @@ function handle_index(array $args) : void {
 function handle_theme(array &$args, $source) : void {
 	@mkdir($args['dir']);
 
-	if (isset($args['files'][$source]) && md5_file($source) === $args['files'][$source]) {
+	if (isset($args['theme'][$source]) && md5_file($source) === $args['theme'][$source]) {
 		return;
 	}
 
@@ -85,7 +88,7 @@ function handle_theme(array &$args, $source) : void {
 	copy($source, $dest);
 
 	$data = file_get_contents($source);
-	$args['files'][$source] = $md5 = md5($data);
+	$args['theme'][$source] = $md5 = md5($data);
 	display($md5, $dest);
 }
 
