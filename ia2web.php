@@ -103,9 +103,7 @@ function html_nav(array $args) : string {
 
 function view(string $layout, array $shared) : string {
         ob_start();
-        echo 'test';
-        $Template = new Template( $layout, $shared);
-        $Template->render();
+        (new Template( $layout, $shared))->render();
         $out = ob_get_contents ();
         ob_end_clean();
         return $out;
