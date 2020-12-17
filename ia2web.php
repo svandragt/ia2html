@@ -41,11 +41,8 @@ function get_args() : array {
 }
 
 function handle_file(&$args, $source) {
-	$fn = $source;
-	$fn = mb_ereg_replace("([^a-zA-Z0-9\.\/\\_])", '-', $fn);
+	$fn = mb_ereg_replace("([^a-zA-Z0-9\.\/\\_])", '-', $source);
 	$fn = str_replace ( ['.md', '--'], ['.html','-'], $fn);
-	$dest = __DIR__ . '/html/' . $args['dir'] . '/' . $fn;
-
 
 	if (isset($args['files'][$fn]) && md5_file($source) === $args['files'][$fn]) {
 		return false;
@@ -53,9 +50,10 @@ function handle_file(&$args, $source) {
 
 	$markdown = file_get_contents($source);
 	$html = $args['Parsedown']->text($markdown); 
-	$data = view( 'template/single.php', ['content' => $html ]);
-   
-   	file_put_contents ( $dest, $data );
+	$html = render( 'template/single.php', ['content' => $html ]);
+
+	$dest = __DIR__ . '/html/' . $args['dir'] . '/' . $fn;   
+   	file_put_contents ( $dest, $html );
 
 	$args['files'][$fn] = $md5 = md5($markdown);
 	display($md5, $dest);
@@ -64,12 +62,12 @@ function handle_file(&$args, $source) {
 
 function handle_index(array $args) : void {	
 	$html = html_nav($args);
+	$html = render( 'template/index.php', ['content' => $html ]);
 
-	$data = view( 'template/index.php', ['content' => $html ]);
 	$dest = __DIR__ .'/'. $args['dir'] . '/index.html';
-   	file_put_contents ( $dest, $data );
+   	file_put_contents ( $dest, $html );
 
-   	$md5 = md5($data);
+   	$md5 = md5($out);
 	display($md5, $dest);
 }
 
@@ -101,7 +99,7 @@ function html_nav(array $args) : string {
 	return $html;
 }
 
-function view(string $layout, array $shared) : string {
+function render(string $layout, array $shared) : string {
         ob_start();
         (new Template( $layout, $shared))->render();
         $out = ob_get_contents ();
