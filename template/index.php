@@ -6,7 +6,7 @@
 </head>
 <body>
 	<main>
-		{content}
+		<?php echo $this->content; ?>
 	</main>
 </body>
 </html>

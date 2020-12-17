@@ -11,5 +11,8 @@
     ],
     "require": {
         "erusev/parsedown": "^1.7"
+    },
+    "autoload": {
+        "classmap": ["lib"]
     }
 }

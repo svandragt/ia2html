@@ -7,7 +7,7 @@
 <body>
 	<nav><p><a href="index.html">&laquo; Index</a></p></nav>
 	<main>
-		{content}
+		<?php echo $this->content; ?>
 	</main>
 </body>
 </html>

@@ -36,10 +36,6 @@ function display(string $md5, string $dest ) : void {
 function get_args() : array {
 	return [
 		'Parsedown' => new Parsedown(),
-		'layout'    => [
-			'index' =>file_get_contents('template/index.html'),
-			'single' =>file_get_contents('template/single.html'),
-		],
 		'dir'       => 'html',
 	];
 }
@@ -57,8 +53,8 @@ function handle_file(&$args, $source) {
 
 	$markdown = file_get_contents($source);
 	$html = $args['Parsedown']->text($markdown); 
-	$data    = str_replace('{content}', $html, $args['layout']['single']);
-
+	$data = view( 'template/single.php', ['content' => $html ]);
+   
    	file_put_contents ( $dest, $data );
 
 	$args['files'][$fn] = $md5 = md5($markdown);
@@ -69,7 +65,7 @@ function handle_file(&$args, $source) {
 function handle_index(array $args) : void {	
 	$html = html_nav($args);
 
-	$data    = str_replace('{content}', $html, $args['layout']['index']);
+	$data = view( 'template/index.php', ['content' => $html ]);
 	$dest = __DIR__ .'/'. $args['dir'] . '/index.html';
    	file_put_contents ( $dest, $data );
 
@@ -103,4 +99,14 @@ function html_nav(array $args) : string {
 	}
 	$html .= '</ul>';
 	return $html;
+}
+
+function view(string $layout, array $shared) : string {
+        ob_start();
+        echo 'test';
+        $Template = new Template( $layout, $shared);
+        $Template->render();
+        $out = ob_get_contents ();
+        ob_end_clean();
+        return $out;
 }
