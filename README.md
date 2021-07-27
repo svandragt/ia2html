@@ -2,6 +2,9 @@
 Static site generation of iA Writer (and compatible) Markdown files.<br>
 [View on GitHub](https://github.com/svandragt/ia2web)
 
+![Screenshot](https://user-images.githubusercontent.com/594871/127234909-a06ddd05-f163-416e-8f51-b744d8cd2737.png)
+
+
 ## Setup
 
 In the directory of markdown files:
