@@ -49,6 +49,7 @@ function handle_file( array &$args, string $source ) : bool {
 	if ( isset( $args['files'][ $fn ] ) && md5_file( $source ) === $args['files'][ $fn ] ) {
 		return false;
 	}
+	echo "file: $source; mtime: " . date( "F d Y H:i:s.",filemtime( $source));
 
 	$markdown = file_get_contents( $source );
 	$html     = $args['Parsedown']->text( $markdown );
