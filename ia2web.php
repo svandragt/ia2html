@@ -17,12 +17,12 @@ function main() : void {
 		throw new RuntimeException( sprintf( 'Directory "%s" was not created', $config['dir'] ) );
 	}
 	while ( true ) {
-		$changed = [];
-		$changed['theme'] = update_assets( glob( 'template/*.css' ) );
-		$files = array_merge( glob( '../*.md' ), glob( '../*.txt' ) );
-		$changed['posts'] = update_files( $files );
+		update_assets( glob( 'template/*.css' ) );
 
-		if ( count( $changed['posts'] ) > 0 ) {
+        $files = array_merge( glob( '../*.md' ), glob( '../*.txt' ) );
+		$changed = update_files( $files );
+
+		if ( count( $changed ) > 0 ) {
 			update_post_index();
 		}
 		if ( sleep( 1 ) !== 0 ) {
