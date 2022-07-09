@@ -2,25 +2,26 @@
 <?php
 require_once __DIR__. '/vendor/autoload.php';
 
+$config = [
+	'Parsedown' => new Parsedown(),
+	'dir' => 'html',
+];
+
+$cache = [];
+
 main();
 
 function main() : void {
-	$args  = get_args();
-	$paths = [
-		'template/*.css' => 'handle_theme',
-		'../*.md'        => 'handle_file',
-		'../*.txt'       => 'handle_file',
-	];
+
 
 	while ( true ) {
-		$changes = 0;
-		foreach ( $paths as $path => $callback ) {
-			foreach ( glob( $path ) as $source ) {
-				$changes += (int) $callback( $args, $source );
-			}
-		}
-		if ( $changes > 0 ) {
-			handle_index( $args );
+		$changed = [];
+		$changed['theme'] = handle_theme_files( glob( 'template/*.css' ) );
+        $files = array_merge( glob( '../*.md' ), glob( '../*.txt' ));
+		$changed['posts'] = handle_files( $files );
+
+		if ( count($changed['posts']) > 0 ) {
+			handle_index();
 		}
 		if ( sleep( 1 ) !== 0 ) {
 			break;
@@ -34,69 +35,87 @@ function display(string $md5, string $dest ) : void {
 	echo "${md5} ${dest}" . PHP_EOL;
 }
 
-function get_args() : array {
-	return [
-		'Parsedown' => new Parsedown(),
-		'dir'       => 'html',
-	];
+function handle_files($files) {
+    $handled = [];
+    foreach ($files as $source) {
+       $handled[] = handle_file($source);
+    }
+    return array_filter($handled);
 }
 
-function handle_file( array &$args, string $source ) : bool {
+function handle_theme_files( $files ) {
+	$handled = [];
+	foreach ( $files as $source ) {
+		$handled[] = handle_theme( $source );
+	}
+
+	return array_filter($handled);
+}
+
+function handle_file( string $source ) : ?string {
+    global $cache;
+    global $config;
+
 	$ext = pathinfo( $source, PATHINFO_EXTENSION );
 	$fn  = mb_ereg_replace( "([^a-zA-Z0-9\.\/\\_])", '-', $source );
 	$fn  = str_replace( [ ".${ext}", '--' ], [ '.html', '-' ], $fn );
 
-	if ( isset( $args['files'][ $fn ] ) && md5_file( $source ) === $args['files'][ $fn ] ) {
-		return false;
+	if ( isset( $cache['files'][ $fn ] ) && md5_file( $source ) === $cache['files'][ $fn ] ) {
+		return null;
 	}
 	echo "file: $source; mtime: " . date( "F d Y H:i:s.",filemtime( $source));
 
 	$markdown = file_get_contents( $source );
-	$html     = $args['Parsedown']->text( $markdown );
+	$html     = $config['Parsedown']->text( $markdown );
 	$html     = render( 'template/single.php', [ 'content' => $html ] );
 
-	$dest = __DIR__ . '/html/' . $args['dir'] . '/' . $fn;
+    // relative .. files workaround
+	$dest = __DIR__ . '/html/' . $config['dir'] . '/' . $fn;
 	file_put_contents( $dest, $html );
 
-	$args['files'][ $fn ] = $md5 = md5( $markdown );
+	$cache['files'][ $fn ] = $md5 = md5( $markdown );
 	display( $md5, $dest );
 
-	return true;
+	return $fn;
 }
 
-function handle_index( array $args ) : void {
-	$html = html_nav( $args );
+function handle_index( ) : void {
+    global $config;
+	$html = html_nav();
 	$html = render( 'template/index.php', [ 'content' => $html ] );
 
-	$dest = __DIR__ . '/' . $args['dir'] . '/index.html';
+	$dest = __DIR__ . '/' . $config['dir'] . '/index.html';
 	file_put_contents( $dest, $html );
 
 	$md5 = md5( $dest );
 	display( $md5, $dest );
 }
 
-function handle_theme( array &$args, $source ) : bool {
-	if ( ! is_dir( $args['dir'] ) && ! mkdir( $concurrentDirectory = $args['dir'] ) && ! is_dir( $concurrentDirectory ) ) {
+function handle_theme( $source ) : bool {
+    global $config;
+    global $cache;
+	if ( ! is_dir( $config['dir'] ) && ! mkdir( $concurrentDirectory = $config['dir'] ) && ! is_dir( $concurrentDirectory ) ) {
 		throw new \RuntimeException( sprintf( 'Directory "%s" was not created', $concurrentDirectory ) );
 	}
 
-	if ( isset( $args['theme'][ $source ] ) && md5_file( $source ) === $args['theme'][ $source ] ) {
+	if ( isset( $cache['theme'][ $source ] ) && md5_file( $source ) === $cache['theme'][ $source ] ) {
 		return false;
 	}
 
-	$dest = str_replace( 'template', $args['dir'], $source );
+	$dest = str_replace( 'template', $config['dir'], $source );
 	copy( $source, $dest );
 
 	$data                     = file_get_contents( $source );
-	$args['theme'][ $source ] = $md5 = md5( $data );
+	$cache['theme'][ $source ] = $md5 = md5( $data );
 	display( $md5, $dest );
 
 	return true;
 }
 
-function html_nav(array $args) : string {
+function html_nav() : string {
+    global $cache;
 	$html ='<ul>';
-	foreach (array_keys($args['files']) as $dest) {
+	foreach (array_keys($cache) as $dest) {
 		$ext  = pathinfo( $dest, PATHINFO_EXTENSION );
 		$link = str_replace( [ ".${ext}", '../' ], [ '.html', '' ], $dest );
 
