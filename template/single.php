@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>IA2Web</title>
+	<title><?php echo $this->title;?> / IA2Web</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>

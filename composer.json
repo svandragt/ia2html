@@ -18,7 +18,10 @@
     },
     "autoload": {
         "classmap": [
-            "lib"
+            "lib/"
+        ],
+        "files": [
+            "inc/autoload.php"
         ]
     }
 }
