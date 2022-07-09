@@ -3,7 +3,7 @@
 require_once __DIR__. '/vendor/autoload.php';
 
 $config = [
-	'Parsedown' => new Parsedown(),
+	'parser' => new Parsedown(),
 	'dir' => 'html',
 ];
 
@@ -32,10 +32,10 @@ function main() : void {
 function display(string $md5, string $dest ) : void {
 	$md5  = substr( $md5, 0, 8 );
 	$dest = (string) pathinfo( $dest, PATHINFO_BASENAME );
-	echo "${md5} ${dest}" . PHP_EOL;
+	echo "$md5 $dest" . PHP_EOL;
 }
 
-function handle_files($files) {
+function handle_files(array $files) : array {
     $handled = [];
     foreach ($files as $source) {
        $handled[] = handle_file($source);
@@ -43,7 +43,7 @@ function handle_files($files) {
     return array_filter($handled);
 }
 
-function handle_theme_files( $files ) {
+function handle_theme_files( array $files ) : array {
 	$handled = [];
 	foreach ( $files as $source ) {
 		$handled[] = handle_theme( $source );
@@ -58,7 +58,7 @@ function handle_file( string $source ) : ?string {
 
 	$ext = pathinfo( $source, PATHINFO_EXTENSION );
 	$fn  = mb_ereg_replace( "([^a-zA-Z0-9\.\/\\_])", '-', $source );
-	$fn  = str_replace( [ ".${ext}", '--' ], [ '.html', '-' ], $fn );
+	$fn  = str_replace( [ ".$ext", '--' ], [ '.html', '-' ], $fn );
 
 	if ( isset( $cache['files'][ $fn ] ) && md5_file( $source ) === $cache['files'][ $fn ] ) {
 		return null;
@@ -66,7 +66,7 @@ function handle_file( string $source ) : ?string {
 	echo "file: $source; mtime: " . date( "F d Y H:i:s.",filemtime( $source));
 
 	$markdown = file_get_contents( $source );
-	$html     = $config['Parsedown']->text( $markdown );
+	$html     = $config['parser']->text( $markdown );
 	$html     = render( 'template/single.php', [ 'content' => $html ] );
 
     // relative .. files workaround
@@ -95,7 +95,7 @@ function handle_theme( $source ) : bool {
     global $config;
     global $cache;
 	if ( ! is_dir( $config['dir'] ) && ! mkdir( $concurrentDirectory = $config['dir'] ) && ! is_dir( $concurrentDirectory ) ) {
-		throw new \RuntimeException( sprintf( 'Directory "%s" was not created', $concurrentDirectory ) );
+		throw new RuntimeException( sprintf( 'Directory "%s" was not created', $concurrentDirectory ) );
 	}
 
 	if ( isset( $cache['theme'][ $source ] ) && md5_file( $source ) === $cache['theme'][ $source ] ) {
@@ -117,10 +117,10 @@ function html_nav() : string {
 	$html ='<ul>';
 	foreach (array_keys($cache) as $dest) {
 		$ext  = pathinfo( $dest, PATHINFO_EXTENSION );
-		$link = str_replace( [ ".${ext}", '../' ], [ '.html', '' ], $dest );
+		$link = str_replace( [ ".$ext", '../' ], [ '.html', '' ], $dest );
 
 		$title = str_replace( '.html', '', $link );
-		$html  .= "<li><a href='${link}'>${title}</a></li>";
+		$html  .= "<li><a href='$link'>$title</a></li>";
 	}
 	$html .= '</ul>';
 	return $html;
