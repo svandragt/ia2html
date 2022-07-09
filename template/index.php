@@ -1,10 +1,10 @@
 <?php
-function html_nav(array $cache) {
-	foreach ( array_keys( $cache ) as $dest ) {
-		$ext = pathinfo( $dest, PATHINFO_EXTENSION );
-		$link = str_replace( [ ".$ext", '../' ], [ '.html', '' ], $dest );
+function html_nav(array $store) {
+	foreach ( $store as $slug_fn => $data ) {
+		$ext = pathinfo( $slug_fn, PATHINFO_EXTENSION );
+		$link = str_replace( [ ".$ext", '../' ], [ '.html', '' ], $slug_fn );
 
-		$title = str_replace( '.html', '', $link );
+		$title = $data['title'];
 		echo "<li><a href='$link'>$title</a></li>" . PHP_EOL;
 	}
 }
@@ -19,7 +19,7 @@ function html_nav(array $cache) {
 	<nav>IA2Web</nav>
 	<main>
         <ul>
-            <?php html_nav($this->cache);?>
+            <?php html_nav($this->store);?>
         </ul>
 	</main>
 	<footer><p>Powered by <a href="https://github.com/svandragt/ia2web">IA2web</a></p></footer>

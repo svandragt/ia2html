@@ -6,8 +6,6 @@ $config = [
 	'dir' => 'html',
 ];
 
-$cache = [];
-
 main();
 
 function main() : void {
@@ -18,7 +16,7 @@ function main() : void {
 	while ( true ) {
 		update_assets( glob( 'template/*.css' ) );
 
-        $files = array_merge( glob( '../*.md' ), glob( '../*.txt' ) );
+		$files = array_merge( glob( '../*.md' ), glob( '../*.txt' ) );
 		$changed = update_posts( $files );
 
 		if ( count( $changed ) > 0 ) {
@@ -58,29 +56,32 @@ function update_post( string $filename ) : ?string {
 	global $config;
 
 	$slug_fn = slug_fn( $filename );
-	if ( is_cached( 'files', $slug_fn, $filename ) ) {
+	if ( is_stored_file( 'files', $slug_fn, $filename ) ) {
 		return null;
 	}
 	$contents = file_get_contents( $filename );
-	$title = Parsedown::instance()->line( $contents );
-	$html = Parsedown::instance()->text( $contents );
 
 	// relative .. files workaround
 	$dest = __DIR__ . '/html/' . $config['dir'] . '/' . $slug_fn;
-	$partial = render( 'template/single.php', [ 'content' => $html, 'title'=>$title ] );
+	$data = [
+		'content' => Parsedown::instance()->text( $contents ),
+        'md5' => md5( $contents ),
+		'title' => get_title($contents),
+	];
+
+	$partial = render( 'template/single.php', $data );
 	file_put_contents( $dest, $partial );
 
-	$md5 = md5( $contents );
-	cli_line( $md5, $dest );
+	cli_line( $data['md5'], $dest );
 
-	update_cache( 'files', $slug_fn, $contents );
+	save( 'files', $slug_fn, $data );
 
 	return $slug_fn;
 }
 
 function update_post_index() : void {
 	global $config;
-	$html = render( 'template/index.php', [ 'cache' => cache('files') ] );
+	$html = render( 'template/index.php', [ 'store' => load( 'files' ) ] );
 
 	$dest = __DIR__ . '/' . $config['dir'] . '/index.html';
 	file_put_contents( $dest, $html );
@@ -92,7 +93,7 @@ function update_post_index() : void {
 function update_asset( string $filename ) : ?string {
 	global $config;
 
-	if ( is_cached( 'theme', $filename, $filename ) ) {
+	if ( is_stored_file( 'theme', $filename, $filename ) ) {
 		return null;
 	}
 
@@ -104,7 +105,7 @@ function update_asset( string $filename ) : ?string {
 
 	cli_line( $md5, $dest );
 
-	update_cache( 'theme', $filename, $contents );
+	save( 'theme', $filename, [ 'md5' => $md5 ] );
 
 	return $filename;
 }
